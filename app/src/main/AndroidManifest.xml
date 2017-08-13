@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.chillarapps.networkinfowidget">
 
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -10,19 +11,31 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
+        <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+        <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+
         <receiver
-            android:label="Network Info Widget"
             android:name=".NetworkInfoWidgetProvider"
-            >
-            <intent-filter >
+            android:label="Network Info Widget">
+            <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
-
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_network_info" />
         </receiver>
 
+        <receiver
+            android:name=".NetworkStateChangeReceiver"
+            android:enabled="true">
+            <intent-filter>
+                <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
+                <action android:name="android.net.wifi.WIFI_STATE_CHANGED" />
+                <action android:name="com.chillarapps.niwinit" />
+            </intent-filter>
+        </receiver>
+
+        <!--<service android:name=".NetworkStateChangeService"></service>-->
 
         <activity android:name=".MainActivity">
             <intent-filter>
@@ -31,6 +44,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <service
+            android:name=".NetworkStateChangeReceiver"
+            android:enabled="true"
+            android:exported="true"></service>
+
     </application>
 
 </manifest>

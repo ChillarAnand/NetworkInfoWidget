@@ -1,15 +1,14 @@
 package com.chillarapps.networkinfowidget;
 
-import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.Intent;
-import android.util.Log;
+import android.net.ConnectivityManager;
+import android.net.wifi.WifiManager;
 import android.widget.RemoteViews;
 
-import java.util.Random;
+import com.chillarapps.networkinfowidget.util.NetworkInfo;
 
 /**
  * Created by chillaranand on 8/10/17.
@@ -17,33 +16,30 @@ import java.util.Random;
 
 public class NetworkInfoWidgetProvider extends AppWidgetProvider {
 
-    private static final String ACTION_CLICK = "ACTION_CLICK";
+    public ConnectivityManager connManager;
+    public WifiManager wifiManager;
+
+    @Override
+    public void onEnabled(Context context) {
+        super.onEnabled(context);
+        ConnectivityManager connManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+        this.connManager = connManager;
+        this.wifiManager = wifiManager;
+    }
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager,
                          int[] appWidgetIds) {
-
-        // Get all ids
         ComponentName thisWidget = new ComponentName(context,
                 NetworkInfoWidgetProvider.class);
         int[] allWidgetIds = appWidgetManager.getAppWidgetIds(thisWidget);
         for (int widgetId : allWidgetIds) {
-
-            int number = (new Random().nextInt(100));
-
             RemoteViews remoteViews = new RemoteViews(context.getPackageName(),
                     R.layout.widget_network_info);
-
-            remoteViews.setTextViewText(R.id.update, String.valueOf(number));
-
-            Intent intent = new Intent(context, NetworkInfoWidgetProvider.class);
-
-            intent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
-            intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, appWidgetIds);
-
-            PendingIntent pendingIntent = PendingIntent.getBroadcast(context,
-                    0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-            remoteViews.setOnClickPendingIntent(R.id.update, pendingIntent);
+            String[] data = NetworkInfo.getData(this);
+            remoteViews.setTextViewText(R.id.network, data[0]);
+            remoteViews.setTextViewText(R.id.ip, data[1]);
             appWidgetManager.updateAppWidget(widgetId, remoteViews);
         }
     }
