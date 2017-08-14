@@ -23,36 +23,53 @@ import java.util.List;
 public class NetworkStateChangeReceiver extends BroadcastReceiver {
 
     String TAG = "==================";
-    String network;
-    String ip;
+    String networkOffline = "Offline";
+    String ipOffline = "0.0.0.0";
+
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        Log.i("===================", "Receive Network State Change");
-        NetworkInfo ni = (NetworkInfo) intent.getExtras().get(ConnectivityManager.EXTRA_NETWORK_INFO);
+        Log.i(TAG, "Received Network State Change");
+        String wifiIP = null;
+        String mobileIP = null;
+        String ip = null;
+        String network = null;
 
-        if (ni == null){
+        try {
+            Log.d(TAG, "Sleep");
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo ni = cm.getActiveNetworkInfo();
+        if (cm.getActiveNetworkInfo() == null) {
             Log.d(TAG, "Empty ni");
-            return;
-        }
-        Log.i(TAG, "Network " + ni.getTypeName() + " connected");
-
-        if (ni.getType() == ConnectivityManager.TYPE_WIFI) {
-            wifiInfo(context);
-        } else if (ni.getType() == ConnectivityManager.TYPE_MOBILE) {
-            network = "Mobile Data";
-            ip = getMobileIPAddress();
+            network = networkOffline;
+            ip = ipOffline;
         } else {
-            network = "Offline";
-            ip = "0.0.0.0";
+            Log.d(TAG, "Getting Wifi info");
+            WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+            WifiInfo info = wifiManager.getConnectionInfo();
+            String ssid = info.getSSID();
+            String ipAddress = castIP(info.getIpAddress());
+            if (ipAddress != null) {
+                network = "WiFi : " + ssid;
+                ip = "IP: " + ipAddress;
+                Log.d(TAG, network + ip);
+            } else {
+                String ipAddr = getMobileIPAddress();
+                if (ipAddr != null) {
+                    network = "Mobile Data";
+                    ip = ipAddr;
+                }
+            }
         }
-        Log.d(TAG, network + ip);
+        Log.d(TAG, "STATE: " + network + ip);
         updateWidget(context, network, ip);
-        //else if (intent.getBooleanExtra(ConnectivityManager.EXTRA_NO_CONNECTIVITY, Boolean.FALSE)) {
-          //  Log.d("app", "There's no network connectivity");
-        //}
-
     }
+
+
 
     private void updateWidget(Context context, String network, String ip) {
         AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context.getApplicationContext());
@@ -69,16 +86,6 @@ public class NetworkStateChangeReceiver extends BroadcastReceiver {
             }
         }
 
-    }
-
-    private void wifiInfo(Context context) {
-        Log.d(TAG, "Getting Wifi info");
-        WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-        WifiInfo info = wifiManager.getConnectionInfo();
-        String ssid = info.getSSID();
-        String ipAddress = castIP(info.getIpAddress());
-        network = "WiFi : " + ssid;
-        ip = "IP: " + ipAddress;
     }
 
     private String castIP(int ipAddress) {
@@ -110,7 +117,9 @@ public class NetworkStateChangeReceiver extends BroadcastReceiver {
                     }
                 }
             }
-        } catch (Exception ex) { } // for now eat exceptions
+        } catch (Exception e) {
+
+        }
         return "";
     }
 

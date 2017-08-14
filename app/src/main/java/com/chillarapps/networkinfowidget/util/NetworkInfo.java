@@ -41,10 +41,13 @@ public class NetworkInfo {
             ipAddress = castIP(info.getIpAddress());
             network = "WiFi : " + ssid;
             ip = "IP: " + ipAddress;
+            Log.d(TAG, network + ip);
         }
         if (ipAddress == null) {
+            Log.d(TAG, "Getting mobile data info");
             network = "Mobile Data";
             ip = getMobileIPAddress();
+            Log.d(TAG, network + ip);
         }
         Log.d(TAG, network + ip);
         return data;
@@ -63,7 +66,7 @@ public class NetworkInfo {
         try {
             ipAddressString = InetAddress.getByAddress(ipByteArray).getHostAddress();
         } catch (UnknownHostException ex) {
-            Log.e("WIFIIP", "Unable to get host address.");
+            Log.e(TAG, "Unable to get host address.");
             ipAddressString = null;
         }
         return ipAddressString;
